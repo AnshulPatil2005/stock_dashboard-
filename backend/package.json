@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "chartjs-chart-financial": "^0.2.1",
+    "feedparser": "^2.2.10"
+  }
+}

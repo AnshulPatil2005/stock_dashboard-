@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stock-backend
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # was wget ... -> switch to curl (installed in image)
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/docs >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "/api"
+    container_name: stock-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
