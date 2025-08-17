@@ -1,6 +1,6 @@
 // frontend/src/components/TrendCard.jsx
 import React, { useMemo, useEffect, useState } from 'react'
-import { fetchTrendAI } from '../api' // <-- use shared client
+import { fetchTrendAI } from '../api' // <-- shared client
 
 /* ---------- helpers ---------- */
 function sma(arr, n){ if(!arr||arr.length<n) return null; let s=0, out=Array(arr.length).fill(null); for(let i=0;i<arr.length;i++){ s+=arr[i]; if(i>=n) s-=arr[i-n]; if(i>=n-1) out[i]=s/n } return out }
@@ -34,7 +34,7 @@ function consensus(rule, ai, useAI=true){
   const map={Bullish:1,Neutral:0,Bearish:-1}
   const parts=[]
   if(rule?.label) parts.push({v:map[rule.label]??0,w:0.6+(rule.confidence||0)/400})
-  if(useAI && ai?.label) parts.push({v:map[ai.label]??0,w:0.6+(ai.confidence||0)/400})
+  if(useAI && ai?.label) parts.push({v:map[ai.label]??0,w:0.6+((ai.confidence??0)/400)})
   if(!parts.length) return {label:'Neutral', confidence:0}
   const wsum=parts.reduce((a,p)=>a+p.w,0)
   const s=parts.reduce((a,p)=>a+p.v*p.w,0)/(wsum||1)
@@ -54,23 +54,25 @@ function makeSparkline(closes,N=64,w=140,h=32,pad=3){
 }
 
 /* ---------- component ---------- */
-export default function TrendCard({ hist, symbol }){
-  const trend = useMemo(()=>computeTrend(hist?.points||[]),[hist])
+export default function TrendCard({ hist, symbol, period }){ // accept period from parent if available
+  const points = hist?.points || []
+  const trend = useMemo(()=>computeTrend(points),[points])
+
   const [ai,setAi]=useState(null)
   const [loading,setLoading]=useState(false)
   const [err,setErr]=useState(null)
   const [useAI,setUseAI]=useState(true)
 
   const fetchAI=()=>{
-    if(!symbol||!hist?.points?.length) return
-    const period = hist?.period || '6mo'
+    if(!symbol||!points.length) return
+    const p = period || hist?.period || '6mo'
     setLoading(true); setErr(null)
-    fetchTrendAI(symbol, period)
+    fetchTrendAI(symbol, p)
       .then(d=>setAi(d))
       .catch(e=>setErr(e.message||'AI error'))
       .finally(()=>setLoading(false))
   }
-  useEffect(fetchAI,[symbol, hist?.period, hist?.points?.length])
+  useEffect(fetchAI,[symbol, period, hist?.period, points.length])
 
   const con = consensus(trend, ai, useAI)
   const conTone = toneClass(con.label)
@@ -106,7 +108,7 @@ export default function TrendCard({ hist, symbol }){
         ) : ai ? (
           <>
             <span className={`trend-badge ${aiTone}`}>AI: {ai.label}</span>
-            <span className="trend-conf">{ai.confidence}%</span>
+            <span className="trend-conf">{ai.confidence ?? 0}%</span>
           </>
         ) : (
           <span className="trend-badge neutral">AI: —</span>

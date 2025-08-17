@@ -1,5 +1,7 @@
+// frontend/src/components/Chatbot.jsx
 import React, { useState, useRef, useEffect } from 'react'
-import { fetchTrendAI } from '../api' // <-- use shared client
+import { chat as chatAPI } from '../api'   // <-- use shared client
+
 // Minimal assistant robot icon (inherits currentColor)
 function AssistantIcon({ size = 22 }) {
   return (
@@ -25,16 +27,10 @@ export default function Chatbot({ symbol, period }) {
   const listRef = useRef(null)
   const inputRef = useRef(null)
 
+  useEffect(() => { if (open && inputRef.current) inputRef.current.focus() }, [open])
+  useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [messages, open])
   useEffect(() => {
-    if (open && inputRef.current) inputRef.current.focus()
-  }, [open])
-
-  useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
-  }, [messages, open])
-
-  useEffect(() => {
-    function onEsc(e){ if (e.key === 'Escape') setOpen(false) }
+    const onEsc = (e) => { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('keydown', onEsc)
     return () => window.removeEventListener('keydown', onEsc)
   }, [])
@@ -42,24 +38,23 @@ export default function Chatbot({ symbol, period }) {
   async function send() {
     const text = input.trim()
     if (!text || loading) return
+
     const nextMsgs = [...messages, { role: 'user', content: text }]
     setMessages(nextMsgs)
     setInput('')
     setLoading(true)
+
     try {
-      const r = await fetch(`${API_BASE}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, period, messages: nextMsgs })
-      })
-      const data = await r.json()
+      // Call backend via shared client (respects VITE_API_URL or Netlify proxy /api)
+      const data = await chatAPI({ message: text, symbol, period })
+      const answer = data?.answer ?? 'No response'
       setMessages(m => {
-        const c = [...m, { role: 'assistant', content: data?.answer ?? 'No response' }]
+        const c = [...m, { role: 'assistant', content: answer }]
         if (!open) setHasUnread(true)
         return c
       })
-    } catch {
-      setMessages(m => [...m, { role: 'assistant', content: 'Error contacting chatbot API.' }])
+    } catch (e) {
+      setMessages(m => [...m, { role: 'assistant', content: `Error: ${e.message || 'chat API failed'}` }])
       if (!open) setHasUnread(true)
     } finally {
       setLoading(false)
@@ -67,7 +62,7 @@ export default function Chatbot({ symbol, period }) {
   }
 
   function onKey(e){
-    // Enter sends, Shift+Enter makes a newline
+    // Enter sends, Shift+Enter = newline
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send()
