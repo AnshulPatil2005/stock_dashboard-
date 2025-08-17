@@ -1,11 +1,10 @@
 // frontend/src/components/TrendCard.jsx
 import React, { useMemo, useEffect, useState } from 'react'
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+import { fetchTrendAI } from '../api' // <-- use shared client
 
 /* ---------- helpers ---------- */
 function sma(arr, n){ if(!arr||arr.length<n) return null; let s=0, out=Array(arr.length).fill(null); for(let i=0;i<arr.length;i++){ s+=arr[i]; if(i>=n) s-=arr[i-n]; if(i>=n-1) out[i]=s/n } return out }
 function slope(values,n){ if(!values||values.length<n) return null; const start=values.length-n; let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<n;i++){ const x=i, y=values[start+i]; sx+=x; sy+=y; sxx+=x*x; sxy+=x*y } const d=n*sxx-sx*sx; if(!d) return null; return (n*sxy-sx*sy)/d }
-const pct = (a,b)=> (b ? ((a-b)/b)*100 : null)
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v))
 
 function computeTrend(points){
@@ -29,7 +28,7 @@ function computeTrend(points){
   return { label, confidence, checks, meta:{ last, sma20, close } }
 }
 
-function toneClass(l){ return l==='Bullish'?'bullish':l==='Bearish'?'bearish':'neutral' }
+const toneClass = l => l==='Bullish'?'bullish':l==='Bearish'?'bearish':'neutral'
 
 function consensus(rule, ai, useAI=true){
   const map={Bullish:1,Neutral:0,Bearish:-1}
@@ -66,8 +65,7 @@ export default function TrendCard({ hist, symbol }){
     if(!symbol||!hist?.points?.length) return
     const period = hist?.period || '6mo'
     setLoading(true); setErr(null)
-    fetch(`${API_BASE}/api/trend_ai?symbol=${encodeURIComponent(symbol)}&period=${encodeURIComponent(period)}`)
-      .then(r=>r.ok?r.json():Promise.reject(new Error(`HTTP ${r.status}`)))
+    fetchTrendAI(symbol, period)
       .then(d=>setAi(d))
       .catch(e=>setErr(e.message||'AI error'))
       .finally(()=>setLoading(false))
@@ -97,15 +95,12 @@ export default function TrendCard({ hist, symbol }){
           flexWrap:'nowrap', whiteSpace:'nowrap', overflowX:'auto', paddingBottom:4
         }}
       >
-        {/* Consensus */}
         <span className={`trend-badge ${conTone}`}>Consensus: {con.label}</span>
         <span className="trend-conf">{con.confidence}% conf</span>
 
-        {/* Heuristic */}
         <span className={`trend-badge ${ruleTone}`}>Heuristic: {trend.label}</span>
         <span className="trend-conf">{trend.confidence}%</span>
 
-        {/* AI */}
         {err ? (
           <span className="trend-badge neutral">AI: unavailable</span>
         ) : ai ? (
@@ -119,7 +114,6 @@ export default function TrendCard({ hist, symbol }){
 
         <div style={{flex:1}} />
 
-        {/* Controls on far right */}
         <label style={{display:'inline-flex', alignItems:'center', gap:6, fontSize:12, color:'var(--muted)'}}>
           <input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)} />
           Include AI

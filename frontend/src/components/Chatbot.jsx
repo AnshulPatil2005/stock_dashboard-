@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-
+import { fetchTrendAI } from '../api' // <-- use shared client
 // Minimal assistant robot icon (inherits currentColor)
 function AssistantIcon({ size = 22 }) {
   return (
