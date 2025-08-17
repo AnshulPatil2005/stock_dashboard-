@@ -1,17 +1,22 @@
 # 📈 Stock Market Dashboard (FastAPI + React)
 
 A clean, responsive **stock dashboard** with technical indicators, a trend panel, optional **AI chatbot**, and **news summarizer**.  
-Works fully **offline** using local CSV data; you can also deploy the frontend to **Netlify** and the backend anywhere (Render/Railway/VM/Docker).
+Works fully **offline** using local CSV data; deploy the frontend on **Netlify/Vercel** and the backend on **Railway/Render/Docker/VM**.
 
 ---
 
 ## Table of Contents
-
 1. [Features](#features)
 2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Run Locally](#run-locally)
-
+4. [Project Structure](#project-structure)
+5. [Run Locally](#run-locally)
+6. [API Contract](#api-contract)
+7. [CSV Data Format](#csv-data-format)
+8. [Environment Variables](#environment-variables)
+9. [Deploy (Netlify + Railway)](#deploy-netlify--railway)
+10. [Troubleshooting](#troubleshooting)
+11. [License](#license)
 
 ---
 
@@ -21,12 +26,12 @@ Works fully **offline** using local CSV data; you can also deploy the frontend t
 - Dark, responsive layout
 - **Scrollable sidebar** with **search** (⌘/Ctrl + K)
 - Timeframes: `1mo · 3mo · 6mo · 1y · 2y · 5y · max`
-- Clear indicator toggles + “Clear” button
+- Indicator toggles + **Clear indicators** button
 
 **Charts & Analytics**
-- Line chart with **SMA/EMA** (primary/secondary), **Bollinger Bands**, **52-week High/Low** (line & band)
-- Metrics: Last Close Δ/Δ%, 52-week position bar, Avg Volume (20D vs 1Y), **ATR(14)**, **MTD/YTD**, naive **next-day forecast**
-- **Trend Card** (Heuristic + optional **AI**) with a final consensus label
+- Line chart with **SMA/EMA** (primary/secondary), **Bollinger Bands**, **52-week High/Low** (line & shaded band)
+- Metrics: Last Close Δ/Δ%, 52-week position, Avg Volume (20D vs 1Y), ATR(14), MTD/YTD, naive **next-day forecast**
+- **Trend Card**: Heuristic + optional **AI** consensus (Bullish/Neutral/Bearish)
 
 **AI (optional)**
 - Floating **chatbot** for symbol/timeframe Q&A (`/api/chat`)
@@ -37,12 +42,12 @@ Works fully **offline** using local CSV data; you can also deploy the frontend t
 
 ## Architecture
 
-- **Frontend**: React + Vite + Chart.js (served by Nginx in Docker or Netlify in static hosting)
+- **Frontend**: React + Vite + Chart.js  
+  (Static build; can be served by Netlify/Vercel or Nginx)
 - **Backend**: FastAPI + Pandas/NumPy; reads local CSVs from `backend/data/`
 - **Communication**:
-  - Local/dev: frontend calls backend via `/api/*` or `http://127.0.0.1:8000`
-  - Docker: Nginx **proxies** `/api/*` → FastAPI
-  - Netlify: either proxy `/api/*` to backend or set `VITE_API_URL` to full backend URL
+  - Local/dev: Vite dev proxy → `http://127.0.0.1:8000`
+  - Production: Either **proxy** `/api/*` on the host (e.g., Netlify) → backend, or set `VITE_API_URL` to the backend’s full URL
 
 ---
 
@@ -51,31 +56,9 @@ Works fully **offline** using local CSV data; you can also deploy the frontend t
 - **Python** ≥ 3.10
 - **Node.js** ≥ 18
 - (Optional) **Docker** ≥ 24 / Docker Desktop
-- (Optional) Groq API Key for LLM features (trend, chat, news)
+- (Optional) **Groq API key** for LLM features (chat, trend AI, news)
 
 ---
 
-
----
-
-## Run Locally
-
-### 1) Backend
-
-```bash
-cd backend
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-
-
-### 2) frontend
-
-```bash
-cd ../frontend
-npm install
-npm run dev
 
 
