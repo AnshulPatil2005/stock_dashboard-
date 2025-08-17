@@ -1,7 +1,6 @@
 // frontend/src/components/NewsSummarizer.jsx
 import React, { useMemo, useState } from 'react'
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-
+import { fetchTrendAI } from '../api' // <-- use shared client
 export default function NewsSummarizer({ symbol }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
