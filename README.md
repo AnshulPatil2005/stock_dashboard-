@@ -9,14 +9,9 @@ Works fully **offline** using local CSV data; deploy the frontend on **Netlify/V
 1. [Features](#features)
 2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Project Structure](#project-structure)
-5. [Run Locally](#run-locally)
-6. [API Contract](#api-contract)
-7. [CSV Data Format](#csv-data-format)
-8. [Environment Variables](#environment-variables)
-9. [Deploy (Netlify + Railway)](#deploy-netlify--railway)
-10. [Troubleshooting](#troubleshooting)
-11. [License](#license)
+4. [Run Locally](#run-locally)
+5. [API Contract](#api-contract)
+6. [Deploy (Netlify + Railway)](#deploy-netlify--railway)
 
 ---
 
@@ -33,7 +28,7 @@ Works fully **offline** using local CSV data; deploy the frontend on **Netlify/V
 - Metrics: Last Close Δ/Δ%, 52-week position, Avg Volume (20D vs 1Y), ATR(14), MTD/YTD, naive **next-day forecast**
 - **Trend Card**: Heuristic + optional **AI** consensus (Bullish/Neutral/Bearish)
 
-**AI (optional)**
+**AI **
 - Floating **chatbot** for symbol/timeframe Q&A (`/api/chat`)
 - **News Summarizer** (live fetch from Google News RSS or pasted headlines) → bullets + sentiment + risk  
   (Falls back to heuristics if no API key)
