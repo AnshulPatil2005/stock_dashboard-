@@ -1,3 +1,5 @@
+const API_BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/+$/, '');
+
 // frontend/src/components/NewsSummarizer.jsx
 import React, { useMemo, useState } from 'react'
 import { newsSummarize, newsSummarizeLive } from '../api'
